@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Competition {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  isActive    Boolean      @default(true)
+  contestants Contestant[]
+  votes       Vote[]
+}
+
+model Contestant {
+  id            String      @id @default(uuid())
+  name          String
+  description   String?
+  imageUrl      String?
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  voteRankings  VoteRanking[]
+  createdAt     DateTime    @default(now())
+
+  @@index([competitionId])
+}
+
+model Vote {
+  id            String        @id @default(uuid())
+  voterId       String        // UUID to track unique voters
+  competitionId String
+  competition   Competition   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  rankings      VoteRanking[]
+  createdAt     DateTime      @default(now())
+
+  @@unique([voterId, competitionId]) // Prevent duplicate votes
+  @@index([competitionId])
+}
+
+model VoteRanking {
+  id           String     @id @default(uuid())
+  voteId       String
+  vote         Vote       @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  contestantId String
+  contestant   Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+  rank         Int        // 1-5 for positions
+  points       Int        // Borda count points: 7, 5, 3, 2, 1
+
+  @@index([voteId])
+  @@index([contestantId])
+}

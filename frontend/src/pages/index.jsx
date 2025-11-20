@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { TargetIcon, ShieldIcon, BoltIcon, ChartIcon, SparklesIcon } from '../components/PremiumIcon';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -395,7 +396,7 @@ export default function LandingPage() {
         <h2 style={styles.sectionTitle}>Powerful Features</h2>
         <div style={styles.benefitsList}>
           <div className="benefit-item" style={styles.benefitItem}>
-            <div style={styles.benefitIcon}>🎯</div>
+            <div style={styles.benefitIcon}><TargetIcon size={56} /></div>
             <div style={styles.benefitContent}>
               <h3 style={styles.benefitTitle}>Fair Borda Count Scoring</h3>
               <p style={styles.benefitText}>
@@ -406,7 +407,7 @@ export default function LandingPage() {
           </div>
 
           <div className="benefit-item" style={styles.benefitItem}>
-            <div style={styles.benefitIcon}>🔒</div>
+            <div style={styles.benefitIcon}><ShieldIcon size={56} /></div>
             <div style={styles.benefitContent}>
               <h3 style={styles.benefitTitle}>Secure & Anonymous</h3>
               <p style={styles.benefitText}>
@@ -417,7 +418,7 @@ export default function LandingPage() {
           </div>
 
           <div className="benefit-item" style={styles.benefitItem}>
-            <div style={styles.benefitIcon}>⚡</div>
+            <div style={styles.benefitIcon}><BoltIcon size={56} /></div>
             <div style={styles.benefitContent}>
               <h3 style={styles.benefitTitle}>Lightning Fast Interface</h3>
               <p style={styles.benefitText}>
@@ -428,7 +429,7 @@ export default function LandingPage() {
           </div>
 
           <div className="benefit-item" style={styles.benefitItem}>
-            <div style={styles.benefitIcon}>📊</div>
+            <div style={styles.benefitIcon}><ChartIcon size={56} /></div>
             <div style={styles.benefitContent}>
               <h3 style={styles.benefitTitle}>Real-Time Results</h3>
               <p style={styles.benefitText}>
@@ -439,7 +440,7 @@ export default function LandingPage() {
           </div>
 
           <div className="benefit-item" style={styles.benefitItem}>
-            <div style={styles.benefitIcon}>🎨</div>
+            <div style={styles.benefitIcon}><SparklesIcon size={56} /></div>
             <div style={styles.benefitContent}>
               <h3 style={styles.benefitTitle}>Easy Competition Creation</h3>
               <p style={styles.benefitText}>

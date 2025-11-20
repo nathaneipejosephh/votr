@@ -1,16 +1,25 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+// Configure axios defaults
+axios.defaults.withCredentials = true;
 
 export const api = {
   // Competitions
   getCompetitions: () => axios.get(`${API_URL}/competitions`),
   getCompetition: (id) => axios.get(`${API_URL}/competitions/${id}`),
+  getCompetitionByCode: (code) => axios.get(`${API_URL}/competitions/code/${code}`),
   createCompetition: (data) => axios.post(`${API_URL}/competitions`, data),
+  updateCompetition: (id, data) => axios.put(`${API_URL}/competitions/${id}`, data),
+  deleteCompetition: (id) => axios.delete(`${API_URL}/competitions/${id}`),
+  publishCompetition: (id) => axios.post(`${API_URL}/competitions/${id}/publish`),
+  unpublishCompetition: (id) => axios.post(`${API_URL}/competitions/${id}/unpublish`),
 
   // Contestants
   getContestants: (competitionId) => axios.get(`${API_URL}/contestants/competition/${competitionId}`),
   createContestant: (data) => axios.post(`${API_URL}/contestants`, data),
+  updateContestant: (id, data) => axios.put(`${API_URL}/contestants/${id}`, data),
   deleteContestant: (id) => axios.delete(`${API_URL}/contestants/${id}`),
 
   // Votes
@@ -20,6 +29,10 @@ export const api = {
 
   // Results
   getResults: (competitionId) => axios.get(`${API_URL}/results/${competitionId}`),
+
+  // Auth
+  getMe: () => axios.get(`${API_URL}/auth/me`),
+  logout: () => axios.post(`${API_URL}/auth/logout`),
 };
 
 // Voter ID management

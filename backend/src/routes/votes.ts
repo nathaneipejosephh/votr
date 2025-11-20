@@ -16,7 +16,7 @@ const POINTS_MAP: { [key: number]: number } = {
 // Submit a vote
 router.post('/', async (req, res) => {
   try {
-    const { voterId, competitionId, rankings } = req.body;
+    const { voterId, competitionId, rankings, isAnonymous, voterName, voterEmail } = req.body;
 
     // Validate rankings (should be array of contestantIds in order 1-5)
     if (!Array.isArray(rankings) || rankings.length !== 5) {
@@ -37,11 +37,23 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'You have already voted in this competition' });
     }
 
-    // Create vote with rankings
+    // Check if competition is active
+    const competition = await prisma.competition.findUnique({
+      where: { id: competitionId }
+    });
+
+    if (!competition || !competition.isActive) {
+      return res.status(400).json({ error: 'This competition is not currently accepting votes' });
+    }
+
+    // Create vote with rankings and voter identity
     const vote = await prisma.vote.create({
       data: {
         voterId,
         competitionId,
+        isAnonymous: isAnonymous !== false, // Default to anonymous
+        voterName: isAnonymous === false ? voterName : null,
+        voterEmail: isAnonymous === false ? voterEmail : null,
         rankings: {
           create: rankings.map((contestantId: string, index: number) => ({
             contestantId,

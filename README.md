@@ -1,15 +1,31 @@
 # VOTR - Ranked Voting Platform
 
-A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI inspired by LandoNorris.com.
+A full-stack drag-and-drop Top-5 ranked voting application with Google OAuth authentication, QR code sharing, and a dark animated UI.
 
 ## Features
 
-- **Create Competitions** - Organizers can create voting competitions and add contestants
+### Core Voting
 - **Drag & Drop Voting** - Users drag 5 contestants into ranked slots (1st-5th place)
 - **Borda Count Scoring** - Fair point system (7/5/3/2/1 points for ranks 1-5)
-- **Animated Results** - Live leaderboard with rising bars and winner celebration
+- **Animated Results** - Live leaderboard with GSAP animations
 - **Duplicate Prevention** - UUID-based voter tracking prevents multiple votes
+
+### Admin Features
+- **Google OAuth Authentication** - Secure admin sign-in with Google
+- **Competition Management** - Create, edit, delete, and publish competitions
+- **QR Code Sharing** - Generate QR codes for easy sharing
+- **Access Codes** - 6-digit codes for joining competitions
+- **Publish Controls** - Toggle voting open/closed
+
+### Voter Options
+- **Anonymous Voting** - Vote without any identifying information
+- **Named Voting** - Optionally provide your name
+- **Join by Code** - Enter 6-digit access code to vote
+
+### UI/UX
 - **Dark Animated UI** - Neon accents, smooth transitions, GSAP animations
+- **Premium Icons** - Custom SVG icons with gradients and glow effects
+- **Responsive Design** - Works on desktop and mobile
 
 ## Tech Stack
 
@@ -18,14 +34,17 @@ A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI
 - PostgreSQL database
 - Prisma ORM
 - TypeScript
+- Passport.js (Google OAuth)
+- QRCode generation
 
 ### Frontend
 - React 18 + Vite
-- TypeScript
-- Tailwind CSS
+- JavaScript (JSX)
 - GSAP animations
 - @dnd-kit for drag-and-drop
 - React Router
+- Lucide React icons
+- React Toastify
 
 ## Getting Started
 
@@ -33,6 +52,7 @@ A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI
 
 - Node.js 18+ installed
 - PostgreSQL installed and running
+- Google Cloud Console project (for OAuth)
 
 ### Installation
 
@@ -48,16 +68,27 @@ A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI
    npm install
    ```
 
-   Configure your database in `.env`:
+   Create `.env` file from example:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Configure your `.env`:
    ```env
    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/votr_db?schema=public"
+
+   # Google OAuth (create at console.cloud.google.com)
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/callback
+
+   SESSION_SECRET=your_super_secret_session_key
+   FRONTEND_URL=http://localhost:5173
    PORT=3001
-   NODE_ENV=development
    ```
 
    Create the database:
    ```bash
-   # Using psql
    psql -U postgres
    CREATE DATABASE votr_db;
    \q
@@ -65,8 +96,8 @@ A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI
 
    Generate Prisma client and run migrations:
    ```bash
-   npm run prisma:generate
-   npm run prisma:migrate
+   npx prisma generate
+   npx prisma db push
    ```
 
    Start the backend server:
@@ -82,30 +113,88 @@ A full-stack drag-and-drop Top-5 ranked voting application with dark animated UI
    ```bash
    cd frontend
    npm install
+   ```
+
+   Create `.env` file:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Configure:
+   ```env
+   VITE_API_URL=http://localhost:3001/api
+   VITE_GOOGLE_CLIENT_ID=your_google_client_id
+   ```
+
+   Start the frontend:
+   ```bash
    npm run dev
    ```
 
    The app will be running at `http://localhost:5173`
 
+## Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Go to Credentials > Create Credentials > OAuth Client ID
+5. Configure OAuth consent screen
+6. Add authorized redirect URI: `http://localhost:3001/api/auth/google/callback`
+7. Copy Client ID and Client Secret to your `.env` files
+
 ## Usage
 
 ### Admin Panel
 1. Navigate to `/admin`
-2. Create a new competition
-3. Add contestants (at least 5 required for voting)
-4. Share the competition link with voters
+2. Sign in with Google
+3. Create a new competition
+4. Add contestants (at least 5 required)
+5. Click "Publish" to generate QR code and access code
+6. Share with voters!
 
 ### Voting
-1. Go to `/competitions` to see active competitions
-2. Click on a competition to vote
-3. Drag your top 5 choices into the ranked slots
+1. Scan QR code or enter access code at `/join`
+2. Drag your top 5 choices into ranked slots
+3. Choose to vote anonymously or provide your name
 4. Submit your vote
 5. View results instantly
 
 ### Results
 - View live results at `/results/:competitionId`
-- See animated leaderboard with point totals
-- Rank breakdown shows how many 1st, 2nd, 3rd, 4th, 5th place votes each contestant received
+- Animated leaderboard with point totals
+- Winner highlighted with special styling
+
+## API Endpoints
+
+### Authentication
+- `GET /api/auth/google` - Initiate Google OAuth
+- `GET /api/auth/google/callback` - OAuth callback
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/logout` - Logout
+
+### Competitions
+- `GET /api/competitions` - Get all competitions
+- `GET /api/competitions/:id` - Get single competition
+- `GET /api/competitions/code/:accessCode` - Get by access code
+- `POST /api/competitions` - Create competition
+- `PUT /api/competitions/:id` - Update competition
+- `DELETE /api/competitions/:id` - Delete competition
+- `POST /api/competitions/:id/publish` - Publish with QR/code
+- `POST /api/competitions/:id/unpublish` - Unpublish
+
+### Contestants
+- `GET /api/contestants/competition/:competitionId` - Get contestants
+- `POST /api/contestants` - Create contestant
+- `PUT /api/contestants/:id` - Update contestant
+- `DELETE /api/contestants/:id` - Delete contestant
+
+### Votes
+- `POST /api/votes` - Submit a vote (with voter identity options)
+- `GET /api/votes/check/:competitionId/:voterId` - Check if voted
+
+### Results
+- `GET /api/results/:competitionId` - Get competition results
 
 ## Project Structure
 
@@ -115,63 +204,44 @@ votr-app/
 │   ├── prisma/
 │   │   └── schema.prisma          # Database schema
 │   ├── src/
-│   │   ├── routes/                # API routes
-│   │   │   ├── competitions.ts
+│   │   ├── middleware/
+│   │   │   └── auth.ts            # Auth middleware
+│   │   ├── routes/
+│   │   │   ├── auth.ts            # Google OAuth
+│   │   │   ├── competitions.ts    # Competition CRUD + publish
 │   │   │   ├── contestants.ts
-│   │   │   ├── votes.ts
+│   │   │   ├── votes.ts           # Voting with identity
 │   │   │   └── results.ts
 │   │   ├── utils/
-│   │   │   └── prisma.ts          # Prisma client
-│   │   └── index.ts               # Server entry point
+│   │   │   └── prisma.ts
+│   │   └── index.ts
+│   ├── .env.example
 │   └── package.json
 │
 └── frontend/
     ├── src/
-    │   ├── components/            # Reusable components
-    │   │   ├── ContestantCard.tsx
-    │   │   └── RankedSlot.tsx
-    │   ├── pages/                 # Page components
-    │   │   ├── LandingPage.tsx
-    │   │   ├── AdminPage.tsx
-    │   │   ├── CompetitionsPage.tsx
-    │   │   ├── VotePage.tsx
-    │   │   └── ResultsPage.tsx
-    │   ├── types/                 # TypeScript types
-    │   │   └── index.ts
-    │   ├── utils/                 # Utilities
-    │   │   ├── api.ts
-    │   │   └── voterStorage.ts
-    │   ├── App.tsx                # Main app with routing
-    │   ├── index.css              # Global styles
-    │   └── main.tsx
+    │   ├── components/
+    │   │   ├── ContestantCard.jsx
+    │   │   ├── RankedSlot.jsx
+    │   │   └── PremiumIcon.jsx    # Custom SVG icons
+    │   ├── context/
+    │   │   └── AuthContext.jsx    # Auth state management
+    │   ├── pages/
+    │   │   ├── LandingPage.jsx    # Home with premium icons
+    │   │   ├── AdminPage.jsx      # Full CRUD + publish modal
+    │   │   ├── CompetitionsPage.jsx
+    │   │   ├── VotePage.jsx       # Drag-drop voting
+    │   │   ├── ResultsPage.jsx    # Animated results
+    │   │   └── JoinPage.jsx       # Enter access code
+    │   ├── api/
+    │   │   └── client.js          # API methods
+    │   ├── App.jsx
+    │   └── main.jsx
+    ├── .env.example
     └── package.json
 ```
 
-## API Endpoints
-
-### Competitions
-- `GET /api/competitions` - Get all competitions
-- `GET /api/competitions/:id` - Get single competition
-- `POST /api/competitions` - Create competition
-- `PUT /api/competitions/:id` - Update competition
-- `DELETE /api/competitions/:id` - Delete competition
-
-### Contestants
-- `GET /api/contestants/competition/:competitionId` - Get contestants for competition
-- `POST /api/contestants` - Create contestant
-- `PUT /api/contestants/:id` - Update contestant
-- `DELETE /api/contestants/:id` - Delete contestant
-
-### Votes
-- `POST /api/votes` - Submit a vote
-- `GET /api/votes/check/:competitionId/:voterId` - Check if voter has voted
-
-### Results
-- `GET /api/results/:competitionId` - Get competition results
-
 ## Borda Count Scoring
-
-The app uses Borda Count scoring for fair ranked voting:
 
 - **1st place**: 7 points
 - **2nd place**: 5 points
@@ -179,87 +249,33 @@ The app uses Borda Count scoring for fair ranked voting:
 - **4th place**: 2 points
 - **5th place**: 1 point
 
-Contestants are ranked by total points accumulated across all votes.
+## Deployment
 
-## Features in Detail
+### Vercel (Frontend)
+1. Connect your GitHub repo to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy!
 
-### Landing Page
-- LandoNorris.com inspired design
-- Animated hero section with floating gradient orbs
-- Feature showcase with scroll animations
-- Tech stack display
-- Smooth GSAP transitions
+### Backend
+Deploy to Railway, Render, or your preferred Node.js host.
+Make sure to set all environment variables.
 
-### Drag & Drop
-- Intuitive drag-and-drop interface using @dnd-kit
-- Visual feedback during dragging
-- Ranked slots with color-coded badges
-- Point values displayed for each rank
-- Contestants can be moved between slots or back to available pool
+## Development Scripts
 
-### Results Animation
-- Staggered card entrance animations
-- Growing progress bars
-- Winner celebration with crown and pulsing glow
-- Rank distribution breakdown
-- Real-time vote counts
-
-### Voter Tracking
-- UUID generated and stored in localStorage
-- Prevents duplicate votes per competition
-- Allows voting in multiple competitions
-- No authentication required for voters
-
-## Development
-
-### Backend Scripts
+### Backend
 ```bash
-npm run dev          # Start development server with hot reload
+npm run dev          # Start with hot reload
 npm run build        # Compile TypeScript
-npm start            # Run compiled JavaScript
-npm run prisma:generate   # Generate Prisma client
-npm run prisma:migrate    # Run database migrations
-npm run prisma:studio     # Open Prisma Studio GUI
+npm start            # Run compiled code
 ```
 
-### Frontend Scripts
+### Frontend
 ```bash
 npm run dev          # Start Vite dev server
 npm run build        # Build for production
-npm run preview      # Preview production build
-```
-
-## Customization
-
-### Colors
-Edit `frontend/tailwind.config.js` to customize neon colors:
-```js
-colors: {
-  neon: {
-    blue: '#00f0ff',
-    pink: '#ff00ff',
-    green: '#00ff00',
-    orange: '#ff6b00',
-  },
-}
-```
-
-### Point System
-Modify `backend/src/routes/votes.ts` to change Borda Count scoring:
-```typescript
-const POINTS_MAP: { [key: number]: number } = {
-  1: 7,  // Change these values
-  2: 5,
-  3: 3,
-  4: 2,
-  5: 1
-};
+npm run preview      # Preview build
 ```
 
 ## License
 
 MIT License - feel free to use this project for your own voting needs!
-
-## Credits
-
-Built with inspiration from LandoNorris.com's sleek animated design.

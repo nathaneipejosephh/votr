@@ -13,6 +13,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Admin/Organizer user model for Google OAuth
+model User {
+  id            String        @id @default(uuid())
+  googleId      String        @unique
+  email         String        @unique
+  name          String
+  picture       String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  competitions  Competition[]
+}
+
 model Competition {
   id          String       @id @default(uuid())
   title       String
@@ -20,8 +32,17 @@ model Competition {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   isActive    Boolean      @default(true)
+  isPublished Boolean      @default(false)
+  accessCode  String?      @unique
   contestants Contestant[]
   votes       Vote[]
+
+  // Owner relationship
+  ownerId     String?
+  owner       User?        @relation(fields: [ownerId], references: [id])
+
+  @@index([accessCode])
+  @@index([ownerId])
 }
 
 model Contestant {
@@ -44,6 +65,11 @@ model Vote {
   competition   Competition   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   rankings      VoteRanking[]
   createdAt     DateTime      @default(now())
+
+  // Voter identity options
+  isAnonymous   Boolean       @default(true)
+  voterName     String?       // Display name if not anonymous
+  voterEmail    String?       // Google email if signed in to vote
 
   @@unique([voterId, competitionId]) // Prevent duplicate votes
   @@index([competitionId])

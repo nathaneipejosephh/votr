@@ -1,26 +1,40 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from './context/AuthContext';
 import AdminPage from './pages/AdminPage';
-import LandingPage from './pages/LandingPage';
-
-function CompetitionsPage() {
-  return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem' }}>
-      <Link to="/" style={{ color: '#00f0ff', textDecoration: 'none' }}>← Back to Home</Link>
-      <h1 style={{ fontSize: '3rem', marginTop: '2rem' }}>Competitions</h1>
-      <p>No competitions yet. Create one in the admin panel!</p>
-    </div>
-  );
-}
+import LandingPage from './pages/index';
+import CompetitionsPage from './pages/CompetitionsPage';
+import VotePage from './pages/VotePage';
+import ResultsPage from './pages/ResultsPage';
+import JoinPage from './pages/JoinPage';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/competitions" element={<CompetitionsPage />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/competitions" element={<CompetitionsPage />} />
+          <Route path="/vote/:competitionId" element={<VotePage />} />
+          <Route path="/results/:competitionId" element={<ResultsPage />} />
+          <Route path="/join" element={<JoinPage />} />
+        </Routes>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
+      </Router>
+    </AuthProvider>
   );
 }
 
